@@ -13,6 +13,7 @@ const sampleData = [
 ];
 
 
+
 async function authenticate() {
   const fetch = (await import("node-fetch")).default;
   const url = "https://csuapps.minsante.cm/api/graphql";
@@ -232,17 +233,21 @@ async function createFamily(headers, familyData) {
   );
 }
 
-async function createPolicy(headers, familyId) {
+async function createPolicy(headers, familyId, visitDate) {
   const query = `
     mutation {
         createPolicy(
             input: {
                 clientMutationId: "${crypto.randomUUID()}"
-                clientMutationLabel: "Création de la police - ${new Date().toISOString()}"
-                enrollDate: "${new Date().toISOString().split("T")[0]}"
-                startDate: "${new Date().toISOString().split("T")[0]}"
+                clientMutationLabel: "Création de la police - ${visitDate}"
+                enrollDate: "${visitDate}"
+                startDate: "${visitDate}"
                 expiryDate: "${
-                  new Date(new Date().setFullYear(new Date().getFullYear() + 1))
+                  new Date(
+                    new Date(visitDate).setFullYear(
+                      new Date(visitDate).getFullYear() + 1
+                    )
+                  )
                     .toISOString()
                     .split("T")[0]
                 }"
@@ -406,7 +411,7 @@ async function processRegistration(data, headers) {
     }
 
     // Étape 2: Création de la police
-    const policyResult = await createPolicy(headers, familyId);
+    const policyResult = await createPolicy(headers, familyId, data.visitDate);
 
     // Générer le code de réclamation avant de créer la prestation
     const claimCode = await generateClaimCode(
@@ -487,4 +492,5 @@ async function processAllRegistrations(dataArray) {
 processAllRegistrations(sampleData).then((results) => {
   console.log("Résultats complets:", results);
 });
+
 
